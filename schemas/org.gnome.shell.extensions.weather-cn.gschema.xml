@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.weather-cn"
+          path="/org/gnome/shell/extensions/weather-cn/">
+
+    <key name="api-key" type="s">
+      <default>''</default>
+      <summary>和风天气 API Key</summary>
+      <description>在和风天气控制台创建的 API Key</description>
+    </key>
+
+    <key name="api-host" type="s">
+      <default>''</default>
+      <summary>API Host</summary>
+      <description>你的 API Host 地址，例如 abc123.def.qweatherapi.com</description>
+    </key>
+
+    <key name="city-id" type="s">
+      <default>''</default>
+      <summary>城市 ID</summary>
+      <description>和风天气城市 ID，例如 101010100 为北京</description>
+    </key>
+
+    <key name="character-id" type="s">
+      <default>'genki'</default>
+      <summary>角色 ID</summary>
+      <description>当前选择的 ACG 角色 ID</description>
+    </key>
+
+    <key name="city-name" type="s">
+      <default>''</default>
+      <summary>城市名称</summary>
+      <description>当前选择的城市名称</description>
+    </key>
+
+    <key name="temp-unit" type="i">
+      <default>0</default>
+      <summary>温度单位</summary>
+      <description>0 = 摄氏度, 1 = 华氏度</description>
+      <range min="0" max="1"/>
+    </key>
+
+    <key name="refresh-interval" type="i">
+      <default>30</default>
+      <summary>刷新间隔</summary>
+      <description>天气数据自动刷新间隔（分钟）</description>
+      <range min="10" max="120"/>
+    </key>
+
+  </schema>
+</schemalist>

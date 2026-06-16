@@ -1,0 +1,166 @@
+/* 天气扩展样式 */
+
+.weather-panel-button {
+    padding: 0 8px;
+}
+
+.weather-panel-box {
+    spacing: 4px;
+}
+
+.weather-panel-icon {
+    icon-size: 16px;
+}
+
+.weather-panel-temp {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+/* 弹出菜单样式 */
+.weather-popup-menu {
+    min-width: 280px;
+    padding: 16px;
+}
+
+.weather-header {
+    spacing: 12px;
+    margin-bottom: 12px;
+}
+
+.weather-main-icon {
+    icon-size: 48px;
+}
+
+.weather-main-info {
+    spacing: 4px;
+}
+
+.weather-city {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.weather-temp-main {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.weather-condition {
+    font-size: 13px;
+    color: #8b8b8b;
+}
+
+.weather-details {
+    spacing: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.weather-detail-row {
+    spacing: 8px;
+}
+
+.weather-detail-label {
+    font-size: 12px;
+    color: #8b8b8b;
+    width: 80px;
+}
+
+.weather-detail-value {
+    font-size: 12px;
+}
+
+/* 空气质量 */
+.weather-aqi-box {
+    spacing: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.weather-section-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.weather-aqi-row {
+    spacing: 8px;
+}
+
+.weather-aqi-value {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.weather-aqi-category {
+    font-size: 13px;
+}
+
+.weather-aqi-primary {
+    font-size: 11px;
+    color: #8b8b8b;
+}
+
+/* 生活指数 */
+.weather-indices-box {
+    spacing: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.weather-index-row {
+    spacing: 8px;
+}
+
+.weather-index-label {
+    font-size: 12px;
+    color: #8b8b8b;
+    width: 100px;
+}
+
+.weather-index-value {
+    font-size: 12px;
+}
+
+/* 未来预报 */
+.weather-forecast {
+    spacing: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.weather-forecast-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.weather-forecast-row {
+    spacing: 8px;
+}
+
+.weather-forecast-day {
+    font-size: 11px;
+    width: 60px;
+}
+
+.weather-forecast-icon {
+    icon-size: 16px;
+}
+
+.weather-forecast-temp {
+    font-size: 11px;
+}
+
+.weather-footer {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 10px;
+    color: #666666;
+}

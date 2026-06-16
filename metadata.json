@@ -1,0 +1,10 @@
+{
+  "name": "Weather CN",
+  "description": "中国区天气显示小组件 - 使用和风天气数据源",
+  "uuid": "weather-cn@amanannn",
+  "shell-version": ["42", "43", "44", "45", "46", "47", "48", "49", "50"],
+  "version": 1,
+  "url": "https://github.com/amanannn/weather-cn-gnome",
+  "settings-schema": "org.gnome.shell.extensions.weather-cn",
+  "gettext-domain": "weather-cn"
+}

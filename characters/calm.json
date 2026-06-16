@@ -1,0 +1,64 @@
+{
+  "id": "calm",
+  "label": "冷静知性",
+  "avatar": "calm.png",
+  "kaomoji": {
+    "sunny": ["(─‿─)", "☀️ 嗯"],
+    "cloudy": ["(‿‿)", "☁️"],
+    "rain": ["(─‿─)", "🌧️"],
+    "snow": ["(─‿─)", "❄️"],
+    "hot": ["(‿‿)", "热"],
+    "cold": ["(─‿─)", "冷"],
+    "default": ["(─‿─)"]
+  },
+  "lines": {
+    "current": {
+      "sunny": [
+        "晴天，气温适宜。建议户外活动。",
+        "今日晴朗，紫外线较强，注意防晒。",
+        "天气晴好，适合出行。"
+      ],
+      "cloudy": [
+        "多云，气温变化不大。",
+        "阴天，气压偏低，注意休息。"
+      ],
+      "rain": [
+        "有降水，出门请带伞。",
+        "雨天路面湿滑，注意安全。",
+        "降水天气，建议减少外出。"
+      ],
+      "snow": [
+        "降雪，路面结冰风险较高。",
+        "下雪了，注意防寒保暖。",
+        "雪天出行需谨慎。"
+      ],
+      "hot": [
+        "高温预警，注意防暑降温。",
+        "气温偏高，建议多饮水。"
+      ],
+      "cold": [
+        "低温天气，注意保暖。",
+        "气温偏低，谨防感冒。"
+      ],
+      "default": [
+        "当前{temp}°C，{condition}。",
+        "今日{condition}，气温{temp}度。",
+        "{condition}，{temp}°C。"
+      ]
+    },
+    "forecast": [
+      "{day}：{condition}，{tempMin}～{tempMax}°C。",
+      "{day}预报{condition}，温度{tempMin}到{tempMax}度。",
+      "{day}预计{condition}，{tempMin}～{tempMax}°C。"
+    ],
+    "indices": {
+      "1": "🏃 运动指数：{category}。{text}",
+      "2": "🚗 洗车指数：{category}。{text}",
+      "3": "👔 穿衣指数：{category}。{text}",
+      "5": "☀️ 紫外线：{category}。{text}",
+      "6": "✈️ 旅游指数：{category}。{text}",
+      "9": "🤧 感冒指数：{category}。{text}",
+      "16": "🧴 防晒指数：{category}。{text}"
+    }
+  }
+}
