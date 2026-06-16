@@ -106,6 +106,7 @@ class WeatherIndicator extends PanelMenu.Button {
         this._settings.connect('changed::character-id', () => {
             this._character = this._loadCharacter();
             this._updatePanelIcon();
+            this._updatePopupAvatar();
             this._refreshWeather();
         });
 
@@ -171,24 +172,18 @@ class WeatherIndicator extends PanelMenu.Button {
         this._mainInfoBox.add_child(this._tempMainLabel);
         this._mainInfoBox.add_child(this._conditionLabel);
 
+        // 弹性空间，把头像推到右边
+        this._headerSpacer = new St.Widget({
+            x_expand: true,
+        });
+
         // 角色头像（右上角）
-        const popupAvatarPath = this._getAvatarPath();
-        if (popupAvatarPath) {
-            this._popupAvatar = new St.Icon({
-                gicon: Gio.FileIcon.new(Gio.File.new_for_path(popupAvatarPath)),
-                icon_size: 48,
-                x_align: Clutter.ActorAlign.END,
-                y_align: Clutter.ActorAlign.START,
-            });
-        } else {
-            this._popupAvatar = null;
-        }
+        this._popupAvatar = this._createPopupAvatar();
 
         this._headerBox.add_child(this._mainIcon);
         this._headerBox.add_child(this._mainInfoBox);
-        if (this._popupAvatar) {
-            this._headerBox.add_child(this._popupAvatar);
-        }
+        this._headerBox.add_child(this._headerSpacer);
+        this._headerBox.add_child(this._popupAvatar);
 
         // 详细信息
         this._detailsBox = new St.BoxLayout({
@@ -289,6 +284,28 @@ class WeatherIndicator extends PanelMenu.Button {
         let settingsItem = new PopupMenu.PopupMenuItem('⚙️ 设置');
         settingsItem.connect('activate', () => this._extension.openPreferences());
         this.menu.addMenuItem(settingsItem);
+    }
+
+    _createPopupAvatar() {
+        const avatarPath = this._getAvatarPath();
+        if (avatarPath) {
+            return new St.Icon({
+                gicon: Gio.FileIcon.new(Gio.File.new_for_path(avatarPath)),
+                icon_size: 64,
+                y_align: Clutter.ActorAlign.START,
+            });
+        }
+        return new St.Widget({ width: 0, height: 0 });
+    }
+
+    _updatePopupAvatar() {
+        try {
+            const newAvatar = this._createPopupAvatar();
+            this._headerBox.replace_child(this._popupAvatar, newAvatar);
+            this._popupAvatar = newAvatar;
+        } catch (e) {
+            log(`[Weather CN] 更新弹窗头像失败: ${e.message}`);
+        }
     }
 
     _createPanelIcon() {
@@ -820,7 +837,7 @@ class WeatherIndicator extends PanelMenu.Button {
             this._aqiBox.visible = false;
         }
 
-        // 更新生活指数
+        // 更新生活指数（只显示 3 个最重要的）
         // 清空旧数据
         for (const key in this._indicesRows) {
             this._indicesRows[key].destroy();
@@ -828,35 +845,25 @@ class WeatherIndicator extends PanelMenu.Button {
         this._indicesRows = {};
 
         if (data.indices && data.indices.length > 0) {
+            // 只显示穿衣、运动、紫外线
+            const importantTypes = ['3', '1', '5'];
             const typeIcons = {
-                '1': '🏃', // 运动
-                '2': '🚗', // 洗车
-                '3': '👔', // 穿衣
-                '5': '☀️', // 紫外线
-                '6': '✈️', // 旅游
-                '9': '🤧', // 感冒
-                '16': '🧴', // 防晒
+                '1': '🏃', '2': '🚗', '3': '👔',
+                '5': '☀️', '6': '✈️', '9': '🤧', '16': '🧴',
             };
             const typeNames = {
-                '1': '运动',
-                '2': '洗车',
-                '3': '穿衣',
-                '5': '紫外线',
-                '6': '旅游',
-                '9': '感冒',
-                '16': '防晒',
+                '1': '运动', '2': '洗车', '3': '穿衣',
+                '5': '紫外线', '6': '旅游', '9': '感冒', '16': '防晒',
             };
 
-            for (const item of data.indices) {
+            const filtered = data.indices.filter(item =>
+                importantTypes.includes(item.type)
+            );
+
+            for (const item of filtered) {
                 const icon = typeIcons[item.type] || '📌';
                 const name = typeNames[item.type] || item.name;
-
-                // 尝试用角色台词
-                const characterIndexLine = this._getCharacterLine('index', null, {
-                    type: item.type,
-                    category: item.category || '--',
-                    text: item.text || '',
-                });
+                const category = item.category || '--';
 
                 const row = new St.BoxLayout({
                     style_class: 'weather-index-row',
@@ -866,7 +873,7 @@ class WeatherIndicator extends PanelMenu.Button {
                     style_class: 'weather-index-label',
                 });
                 const value = new St.Label({
-                    text: characterIndexLine || item.category || '--',
+                    text: category,
                     style_class: 'weather-index-value',
                 });
                 row.add_child(label);
