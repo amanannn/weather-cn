@@ -1,11 +1,11 @@
 /* 天气扩展样式 */
 
 .weather-panel-button {
-    padding: 0 8px;
+    padding: 0 4px;
 }
 
 .weather-panel-box {
-    spacing: 4px;
+    spacing: 2px;
 }
 
 .weather-panel-icon {

@@ -91,21 +91,7 @@ class WeatherIndicator extends PanelMenu.Button {
         });
 
         // 面板图标：优先用角色头像
-        const avatarPath = this._getAvatarPath();
-        if (avatarPath) {
-            this._panelIcon = new St.Icon({
-                gicon: Gio.FileIcon.new(Gio.File.new_for_path(avatarPath)),
-                icon_size: 22,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-        } else {
-            this._panelIcon = new St.Label({
-                text: '🌡️',
-                style_class: 'weather-panel-icon',
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-        }
-
+        this._panelIcon = this._createPanelIcon();
         this._panelTemp = new St.Label({
             text: '--°C',
             style_class: 'weather-temp',
@@ -115,6 +101,13 @@ class WeatherIndicator extends PanelMenu.Button {
         this._panelBox.add_child(this._panelIcon);
         this._panelBox.add_child(this._panelTemp);
         this.add_child(this._panelBox);
+
+        // 监听角色切换
+        this._settings.connect('changed::character-id', () => {
+            this._character = this._loadCharacter();
+            this._updatePanelIcon();
+            this._refreshWeather();
+        });
 
         // 弹出菜单
         this._buildMenu();
@@ -280,6 +273,28 @@ class WeatherIndicator extends PanelMenu.Button {
         let settingsItem = new PopupMenu.PopupMenuItem('⚙️ 设置');
         settingsItem.connect('activate', () => this._extension.openPreferences());
         this.menu.addMenuItem(settingsItem);
+    }
+
+    _createPanelIcon() {
+        const avatarPath = this._getAvatarPath();
+        if (avatarPath) {
+            return new St.Icon({
+                gicon: Gio.FileIcon.new(Gio.File.new_for_path(avatarPath)),
+                icon_size: 16,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+        }
+        return new St.Label({
+            text: '🌡️',
+            style_class: 'weather-panel-icon',
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+    }
+
+    _updatePanelIcon() {
+        const newIcon = this._createPanelIcon();
+        this._panelBox.replace_child(this._panelIcon, newIcon);
+        this._panelIcon = newIcon;
     }
 
     _loadCharacter() {

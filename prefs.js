@@ -149,10 +149,9 @@ export default class WeatherCNPreferences extends ExtensionPreferences {
 
             row.connect('activated', () => {
                 settings.set_string('character-id', char.id);
-                char_status_row.set_subtitle(char.label);
 
                 // 刷新列表显示
-                this._refreshCharacterList(char_list, characters, char.id);
+                this._refreshCharacterList(char_list, characters, char.id, char_status_row);
             });
 
             char_list.append(row);
@@ -224,7 +223,7 @@ export default class WeatherCNPreferences extends ExtensionPreferences {
         }
     }
 
-    _refreshCharacterList(list, characters, selectedId) {
+    _refreshCharacterList(list, characters, selectedId, statusRow) {
         let child = list.get_first_child();
         while (child) {
             const next = child.get_next_sibling();
@@ -249,10 +248,18 @@ export default class WeatherCNPreferences extends ExtensionPreferences {
             row.connect('activated', () => {
                 const settings = this.getSettings();
                 settings.set_string('character-id', char.id);
-                this._refreshCharacterList(list, characters, char.id);
+                this._refreshCharacterList(list, characters, char.id, statusRow);
             });
 
             list.append(row);
+        }
+
+        // 更新状态行
+        if (statusRow) {
+            const selected = characters.find(c => c.id === selectedId);
+            if (selected) {
+                statusRow.set_subtitle(selected.label);
+            }
         }
     }
 
