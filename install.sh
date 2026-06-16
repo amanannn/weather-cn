@@ -16,6 +16,10 @@ cp "$SCRIPT_DIR/metadata.json" "$EXTENSION_DIR/"
 cp "$SCRIPT_DIR/stylesheet.css" "$EXTENSION_DIR/"
 cp "$SCRIPT_DIR/prefs.js" "$EXTENSION_DIR/"
 
+# 复制角色文件
+echo "🎭 复制角色文件..."
+cp -r "$SCRIPT_DIR/characters" "$EXTENSION_DIR/"
+
 # 复制并编译 schemas
 mkdir -p "$EXTENSION_DIR/schemas"
 cp "$SCRIPT_DIR/schemas/org.gnome.shell.extensions.weather-cn.gschema.xml" "$EXTENSION_DIR/schemas/"

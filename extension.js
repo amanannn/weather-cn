@@ -82,16 +82,29 @@ class WeatherIndicator extends PanelMenu.Button {
         this._httpSession = new Soup.Session();
         this._httpSession.timeout = 30;
 
+        // 加载角色
+        this._character = this._loadCharacter();
+
         // 面板显示
         this._panelBox = new St.BoxLayout({
             style_class: 'weather-panel-box',
         });
 
-        this._panelIcon = new St.Label({
-            text: '🌡️',
-            style_class: 'weather-panel-icon',
-            y_align: Clutter.ActorAlign.CENTER,
-        });
+        // 面板图标：优先用角色头像
+        const avatarPath = this._getAvatarPath();
+        if (avatarPath) {
+            this._panelIcon = new St.Icon({
+                gicon: Gio.FileIcon.new(Gio.File.new_for_path(avatarPath)),
+                icon_size: 22,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+        } else {
+            this._panelIcon = new St.Label({
+                text: '🌡️',
+                style_class: 'weather-panel-icon',
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+        }
 
         this._panelTemp = new St.Label({
             text: '--°C',
@@ -269,6 +282,118 @@ class WeatherIndicator extends PanelMenu.Button {
         this.menu.addMenuItem(settingsItem);
     }
 
+    _loadCharacter() {
+        try {
+            const characterId = this._settings.get_string('character-id') || 'genki';
+            const dir = this._extension.dir.get_child('characters');
+            const file = dir.get_child(`${characterId}.json`);
+
+            if (!file.query_exists(null)) {
+                log(`[Weather CN] 角色文件不存在: ${characterId}.json`);
+                return null;
+            }
+
+            const [ok, contents] = file.load_contents(null);
+            if (!ok) {
+                log(`[Weather CN] 读取角色文件失败`);
+                return null;
+            }
+
+            const decoder = new TextDecoder('utf-8');
+            const character = JSON.parse(decoder.decode(contents));
+            log(`[Weather CN] 加载角色: ${character.label} (${character.id})`);
+            return character;
+        } catch (e) {
+            log(`[Weather CN] 加载角色失败: ${e.message}`);
+            return null;
+        }
+    }
+
+    _getAvatarPath() {
+        try {
+            const characterId = this._settings.get_string('character-id') || 'genki';
+            const dir = this._extension.dir.get_child('characters');
+
+            // 尝试 jpg 和 png
+            for (const ext of ['jpg', 'png']) {
+                const file = dir.get_child(`${characterId}.${ext}`);
+                if (file.query_exists(null)) {
+                    return file.get_path();
+                }
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    _getWeatherType(iconCode) {
+        const code = parseInt(iconCode);
+        if (code === 100) return 'sunny';
+        if (code >= 101 && code <= 104) return 'cloudy';
+        if (code >= 150 && code <= 153) return 'cloudy';
+        if (code >= 300 && code <= 313) return 'rain';
+        if (code >= 400 && code <= 410) return 'snow';
+        if (code >= 500 && code <= 510) return 'cloudy';
+        if (code === 900) return 'hot';
+        if (code === 901) return 'cold';
+        return 'default';
+    }
+
+    _getRandomLine(lines) {
+        if (!lines || lines.length === 0) return '';
+        return lines[Math.floor(Math.random() * lines.length)];
+    }
+
+    _applyTemplate(template, vars) {
+        let result = template;
+        for (const [key, value] of Object.entries(vars)) {
+            result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+        }
+        return result;
+    }
+
+    _getCharacterLine(type, weatherType, vars) {
+        if (!this._character || !this._character.lines) return '';
+
+        try {
+            if (type === 'current') {
+                const currentLines = this._character.lines.current;
+                const lines = currentLines[weatherType] || currentLines['default'];
+                const template = this._getRandomLine(lines);
+                return this._applyTemplate(template, vars);
+            }
+
+            if (type === 'forecast') {
+                const templates = this._character.lines.forecast;
+                const template = this._getRandomLine(templates);
+                return this._applyTemplate(template, vars);
+            }
+
+            if (type === 'index') {
+                const indexLines = this._character.lines.indices;
+                const template = indexLines[vars.type];
+                if (!template) return '';
+                return this._applyTemplate(template, vars);
+            }
+        } catch (e) {
+            log(`[Weather CN] 获取角色台词失败: ${e.message}`);
+        }
+
+        return '';
+    }
+
+    _getKaomoji(weatherType) {
+        if (!this._character || !this._character.kaomoji) return '';
+
+        try {
+            const kaomojiList = this._character.kaomoji[weatherType] || this._character.kaomoji['default'];
+            return this._getRandomLine(kaomojiList) || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
     _createDetailRow(labelText) {
         let row = new St.BoxLayout({
             style_class: 'weather-detail-row',
@@ -430,6 +555,7 @@ class WeatherIndicator extends PanelMenu.Button {
                 feelsLike: current.feelsLike,
                 condition: current.text,
                 icon: WEATHER_ICONS[current.icon] || '🌡️',
+                iconCode: current.icon,
                 humidity: current.humidity,
                 windDir: current.windDir,
                 windSpeed: current.windScale,
@@ -592,14 +718,33 @@ class WeatherIndicator extends PanelMenu.Button {
 
     _updateUI(data) {
         // 更新面板
-        this._panelIcon.text = data.icon;
+        if (this._panelIcon instanceof St.Label) {
+            this._panelIcon.text = data.icon;
+        }
         this._panelTemp.text = `${data.temp}°C`;
+
+        // 获取角色台词
+        const weatherType = this._getWeatherType(data.iconCode || '100');
+        const kaomoji = this._getKaomoji(weatherType);
+        const characterLine = this._getCharacterLine('current', weatherType, {
+            temp: data.temp,
+            condition: data.condition,
+        });
 
         // 更新弹出菜单
         this._mainIcon.text = data.icon;
         this._cityLabel.text = data.city;
         this._tempMainLabel.text = `${data.temp}°C`;
-        this._conditionLabel.text = data.condition;
+
+        // 天气状况：颜文字 + 原始天气 + 角色台词
+        if (kaomoji || characterLine) {
+            let conditionText = data.condition;
+            if (kaomoji) conditionText = `${kaomoji} ${conditionText}`;
+            if (characterLine) conditionText += ` ～ ${characterLine}`;
+            this._conditionLabel.text = conditionText;
+        } else {
+            this._conditionLabel.text = data.condition;
+        }
 
         // 更新详细信息
         if (data.feelsLike) {
@@ -674,6 +819,14 @@ class WeatherIndicator extends PanelMenu.Button {
             for (const item of data.indices) {
                 const icon = typeIcons[item.type] || '📌';
                 const name = typeNames[item.type] || item.name;
+
+                // 尝试用角色台词
+                const characterIndexLine = this._getCharacterLine('index', null, {
+                    type: item.type,
+                    category: item.category || '--',
+                    text: item.text || '',
+                });
+
                 const row = new St.BoxLayout({
                     style_class: 'weather-index-row',
                 });
@@ -682,7 +835,7 @@ class WeatherIndicator extends PanelMenu.Button {
                     style_class: 'weather-index-label',
                 });
                 const value = new St.Label({
-                    text: item.category || '--',
+                    text: characterIndexLine || item.category || '--',
                     style_class: 'weather-index-value',
                 });
                 row.add_child(label);
@@ -723,8 +876,16 @@ class WeatherIndicator extends PanelMenu.Button {
                     style_class: 'weather-forecast-temp',
                 });
 
+                // 尝试用角色台词
+                const characterForecastLine = this._getCharacterLine('forecast', null, {
+                    day: dayNames[i] || day.fxDate.substring(5),
+                    tempMin: day.tempMin,
+                    tempMax: day.tempMax,
+                    condition: day.textDay,
+                });
+
                 const conditionLabel = new St.Label({
-                    text: day.textDay,
+                    text: characterForecastLine || day.textDay,
                     style_class: 'weather-forecast-temp',
                 });
 

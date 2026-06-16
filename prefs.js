@@ -106,7 +106,154 @@ export default class WeatherCNPreferences extends ExtensionPreferences {
         search_btn.connect('clicked', doSearch);
         search_row.connect('entry-activated', doSearch);
 
+        // --- 角色设置 ---
+        const char_group = new Adw.PreferencesGroup({title: '角色设置'});
+        page.add(char_group);
+
+        // 加载角色列表
+        const characters = this._loadCharacters();
+        const currentCharId = settings.get_string('character-id') || 'genki';
+
+        // 当前角色显示
+        const currentChar = characters.find(c => c.id === currentCharId) || characters[0];
+        const char_status_row = new Adw.ActionRow({
+            title: '当前角色',
+            subtitle: currentChar ? currentChar.label : '未设置',
+        });
+        char_group.add(char_status_row);
+
+        // 角色选择列表
+        const char_list = new Gtk.ListBox({
+            selection_mode: Gtk.SelectionMode.SINGLE,
+            css_classes: ['boxed-list'],
+        });
+        char_group.add(char_list);
+
+        // 填充角色列表
+        let selectedCharRow = null;
+        for (const char of characters) {
+            const row = new Adw.ActionRow({
+                title: char.label,
+                subtitle: char.id,
+                activatable: true,
+            });
+
+            // 标记当前选中
+            if (char.id === currentCharId) {
+                row.add_prefix(new Gtk.Label({
+                    label: '✓',
+                    css_classes: ['accent'],
+                }));
+                selectedCharRow = row;
+            }
+
+            row.connect('activated', () => {
+                settings.set_string('character-id', char.id);
+                char_status_row.set_subtitle(char.label);
+
+                // 刷新列表显示
+                this._refreshCharacterList(char_list, characters, char.id);
+            });
+
+            char_list.append(row);
+        }
+
+        // 示例台词
+        const example_group = new Adw.PreferencesGroup({title: '角色示例'});
+        page.add(example_group);
+
+        const example_row = new Adw.ActionRow({
+            title: '示例台词',
+            subtitle: currentChar ? this._getExampleLine(currentChar) : '',
+        });
+        example_group.add(example_row);
+
+        // 监听角色切换更新示例
+        settings.connect('changed::character-id', () => {
+            const charId = settings.get_string('character-id');
+            const char = characters.find(c => c.id === charId);
+            if (char) {
+                example_row.set_subtitle(this._getExampleLine(char));
+            }
+        });
+
         window.add(page);
+    }
+
+    _loadCharacters() {
+        try {
+            const dir = this.dir.get_child('characters');
+            const chars = [];
+
+            const enumerator = dir.enumerate_children(
+                'standard::name',
+                Gio.FileQueryInfoFlags.NONE,
+                null
+            );
+
+            let info;
+            while ((info = enumerator.next_file(null))) {
+                const name = info.get_name();
+                if (name.endsWith('.json')) {
+                    try {
+                        const file = dir.get_child(name);
+                        const [ok, contents] = file.load_contents(null);
+                        if (ok) {
+                            const decoder = new TextDecoder('utf-8');
+                            chars.push(JSON.parse(decoder.decode(contents)));
+                        }
+                    } catch (e) {
+                        log(`[Weather CN Prefs] 加载角色失败: ${name}: ${e.message}`);
+                    }
+                }
+            }
+
+            return chars.sort((a, b) => a.id.localeCompare(b.id));
+        } catch (e) {
+            log(`[Weather CN Prefs] 扫描角色目录失败: ${e.message}`);
+            return [];
+        }
+    }
+
+    _getExampleLine(character) {
+        try {
+            const lines = character.lines.current.default;
+            return lines[0] || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    _refreshCharacterList(list, characters, selectedId) {
+        let child = list.get_first_child();
+        while (child) {
+            const next = child.get_next_sibling();
+            list.remove(child);
+            child = next;
+        }
+
+        for (const char of characters) {
+            const row = new Adw.ActionRow({
+                title: char.label,
+                subtitle: char.id,
+                activatable: true,
+            });
+
+            if (char.id === selectedId) {
+                row.add_prefix(new Gtk.Label({
+                    label: '✓',
+                    css_classes: ['accent'],
+                }));
+            }
+
+            row.connect('activated', () => {
+                const settings = this.getSettings();
+                settings.set_string('character-id', char.id);
+                this._refreshCharacterList(list, characters, char.id);
+            });
+
+            list.append(row);
+        }
     }
 
     _httpGet(url, apiKey, callback) {
