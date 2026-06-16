@@ -6,6 +6,7 @@
 
 .weather-panel-box {
     spacing: 2px;
+    vertical-align: top;
 }
 
 .weather-panel-icon {

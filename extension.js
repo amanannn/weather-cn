@@ -281,7 +281,8 @@ class WeatherIndicator extends PanelMenu.Button {
             return new St.Icon({
                 gicon: Gio.FileIcon.new(Gio.File.new_for_path(avatarPath)),
                 icon_size: 16,
-                y_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.START,
+                x_align: Clutter.ActorAlign.START,
             });
         }
         return new St.Label({
