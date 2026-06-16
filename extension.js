@@ -136,7 +136,7 @@ class WeatherIndicator extends PanelMenu.Button {
             vertical: true,
         });
 
-        // 头部：图标 + 主要信息
+        // 头部：天气信息 + 角色头像
         this._headerBox = new St.BoxLayout({
             style_class: 'weather-header',
         });
@@ -171,8 +171,24 @@ class WeatherIndicator extends PanelMenu.Button {
         this._mainInfoBox.add_child(this._tempMainLabel);
         this._mainInfoBox.add_child(this._conditionLabel);
 
+        // 角色头像（右上角）
+        const popupAvatarPath = this._getAvatarPath();
+        if (popupAvatarPath) {
+            this._popupAvatar = new St.Icon({
+                gicon: Gio.FileIcon.new(Gio.File.new_for_path(popupAvatarPath)),
+                icon_size: 48,
+                x_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.START,
+            });
+        } else {
+            this._popupAvatar = null;
+        }
+
         this._headerBox.add_child(this._mainIcon);
         this._headerBox.add_child(this._mainInfoBox);
+        if (this._popupAvatar) {
+            this._headerBox.add_child(this._popupAvatar);
+        }
 
         // 详细信息
         this._detailsBox = new St.BoxLayout({
@@ -280,9 +296,8 @@ class WeatherIndicator extends PanelMenu.Button {
         if (avatarPath) {
             return new St.Icon({
                 gicon: Gio.FileIcon.new(Gio.File.new_for_path(avatarPath)),
-                icon_size: 16,
-                y_align: Clutter.ActorAlign.START,
-                x_align: Clutter.ActorAlign.START,
+                icon_size: 22,
+                y_align: Clutter.ActorAlign.CENTER,
             });
         }
         return new St.Label({
